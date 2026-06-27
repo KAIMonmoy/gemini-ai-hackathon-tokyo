@@ -1,0 +1,6 @@
+{
+  "weather": {"region": "Kagoshima", "event": "typhoon landfall ~36h", "severity": 4},
+  "fx": {"pair": "USD/JPY", "move_pct": 3.0, "severity": 3},
+  "commodity": {"material": "titanium", "move_pct": 8.0, "severity": 3},
+  "news": []
+}
