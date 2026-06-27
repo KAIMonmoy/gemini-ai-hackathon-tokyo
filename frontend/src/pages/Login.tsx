@@ -72,6 +72,15 @@ export default function Login() {
             Sign up
           </Link>
         </p>
+        <p className="mt-3 text-center text-xs text-slate-400">
+          <Link to="/help" className="hover:text-slate-600 hover:underline">
+            How it works
+          </Link>{' '}
+          ·{' '}
+          <Link to="/demo" className="hover:text-slate-600 hover:underline">
+            Try the demo
+          </Link>
+        </p>
       </Card>
     </div>
   )

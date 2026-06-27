@@ -3,6 +3,8 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
 import { RequireAuth } from './auth/RequireAuth'
 import Dashboard from './pages/Dashboard'
+import Demo from './pages/Demo'
+import Help from './pages/Help'
 import Login from './pages/Login'
 import Profile from './pages/Profile'
 import Signup from './pages/Signup'
@@ -12,6 +14,8 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/help" element={<Help />} />
+      <Route path="/demo" element={<Demo />} />
       <Route
         element={
           <RequireAuth>
