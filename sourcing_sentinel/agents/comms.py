@@ -6,11 +6,13 @@ from google.adk.agents import LlmAgent
 
 from ..config import MODEL
 
-comms_agent = LlmAgent(
-    name="comms_agent",
-    model=MODEL,
-    description="Drafts ready-to-send supplier emails in Japanese keigo and English.",
-    instruction=(
+def make_comms_agent() -> LlmAgent:
+    """Build a fresh comms_agent instance."""
+    return LlmAgent(
+        name="comms_agent",
+        model=MODEL,
+        description="Drafts ready-to-send supplier emails in Japanese keigo and English.",
+        instruction=(
         "You draft the supplier emails the owner needs, based on the situation.\n\n"
         "Impact assessment:\n{impact}\n\n"
         "Response plan:\n{response_plan}\n\n"

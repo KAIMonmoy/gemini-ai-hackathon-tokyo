@@ -23,66 +23,68 @@ _SIGNAL_SHAPE = (
     "If there is no material risk, output {\"signals\":[]}."
 )
 
-news_agent = LlmAgent(
-    name="news_agent",
-    model=MODEL,
-    description="Watches news for disruptions affecting the company's suppliers/regions.",
-    instruction=(
-        "The watch list is:\n{watch_list}\n\n"
-        "Use Google Search to look for recent news (shutdowns, fires, strikes, "
-        "insolvency, accidents) affecting any supplier or supplier_region above. "
-        "Summarize each relevant finding as a risk signal with stream='news', the "
-        "affected supplier/region, a 1-5 severity, a one-line detail, and the source URL.\n"
-        + _SIGNAL_SHAPE
-    ),
-    tools=[google_search],
-    output_key="news_risk",
-)
+def make_sensing_team() -> ParallelAgent:
+    """Build a fresh sensing_team (4 specialists + parallel wrapper) per call."""
+    news_agent = LlmAgent(
+        name="news_agent",
+        model=MODEL,
+        description="Watches news for disruptions affecting the company's suppliers/regions.",
+        instruction=(
+            "The watch list is:\n{watch_list}\n\n"
+            "Use Google Search to look for recent news (shutdowns, fires, strikes, "
+            "insolvency, accidents) affecting any supplier or supplier_region above. "
+            "Summarize each relevant finding as a risk signal with stream='news', the "
+            "affected supplier/region, a 1-5 severity, a one-line detail, and the source URL.\n"
+            + _SIGNAL_SHAPE
+        ),
+        tools=[google_search],
+        output_key="news_risk",
+    )
 
-weather_agent = LlmAgent(
-    name="weather_agent",
-    model=MODEL,
-    description="Watches severe weather / port-logistics risk for supplier regions.",
-    instruction=(
-        "The watch list is:\n{watch_list}\n\n"
-        "Collect the distinct supplier_region values and call `get_weather_logistics` "
-        "with them. Convert its returned signals into the output shape, keeping "
-        "stream='weather'.\n" + _SIGNAL_SHAPE
-    ),
-    tools=[get_weather_logistics],
-    output_key="weather_risk",
-)
+    weather_agent = LlmAgent(
+        name="weather_agent",
+        model=MODEL,
+        description="Watches severe weather / port-logistics risk for supplier regions.",
+        instruction=(
+            "The watch list is:\n{watch_list}\n\n"
+            "Collect the distinct supplier_region values and call `get_weather_logistics` "
+            "with them. Convert its returned signals into the output shape, keeping "
+            "stream='weather'.\n" + _SIGNAL_SHAPE
+        ),
+        tools=[get_weather_logistics],
+        output_key="weather_risk",
+    )
 
-commodity_agent = LlmAgent(
-    name="commodity_agent",
-    model=MODEL,
-    description="Watches raw-material price moves for the company's parts.",
-    instruction=(
-        "The watch list is:\n{watch_list}\n\n"
-        "Collect the distinct `material` values and call `get_commodity_prices` with "
-        "them. Convert its returned signals into the output shape, keeping "
-        "stream='commodity'.\n" + _SIGNAL_SHAPE
-    ),
-    tools=[get_commodity_prices],
-    output_key="commodity_risk",
-)
+    commodity_agent = LlmAgent(
+        name="commodity_agent",
+        model=MODEL,
+        description="Watches raw-material price moves for the company's parts.",
+        instruction=(
+            "The watch list is:\n{watch_list}\n\n"
+            "Collect the distinct `material` values and call `get_commodity_prices` with "
+            "them. Convert its returned signals into the output shape, keeping "
+            "stream='commodity'.\n" + _SIGNAL_SHAPE
+        ),
+        tools=[get_commodity_prices],
+        output_key="commodity_risk",
+    )
 
-fx_agent = LlmAgent(
-    name="fx_agent",
-    model=MODEL,
-    description="Watches JPY FX moves against the currencies the company buys in.",
-    instruction=(
-        "The watch list is:\n{watch_list}\n\n"
-        "Collect the distinct non-JPY `currency` values and call `get_fx` with them. "
-        "Convert its returned signals into the output shape, keeping stream='fx'.\n"
-        + _SIGNAL_SHAPE
-    ),
-    tools=[get_fx],
-    output_key="fx_risk",
-)
+    fx_agent = LlmAgent(
+        name="fx_agent",
+        model=MODEL,
+        description="Watches JPY FX moves against the currencies the company buys in.",
+        instruction=(
+            "The watch list is:\n{watch_list}\n\n"
+            "Collect the distinct non-JPY `currency` values and call `get_fx` with them. "
+            "Convert its returned signals into the output shape, keeping stream='fx'.\n"
+            + _SIGNAL_SHAPE
+        ),
+        tools=[get_fx],
+        output_key="fx_risk",
+    )
 
-sensing_team = ParallelAgent(
-    name="sensing_team",
-    description="Runs the four risk-sensing specialists concurrently.",
-    sub_agents=[news_agent, weather_agent, commodity_agent, fx_agent],
-)
+    return ParallelAgent(
+        name="sensing_team",
+        description="Runs the four risk-sensing specialists concurrently.",
+        sub_agents=[news_agent, weather_agent, commodity_agent, fx_agent],
+    )

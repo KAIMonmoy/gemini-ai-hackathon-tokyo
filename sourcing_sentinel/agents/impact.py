@@ -6,11 +6,14 @@ from google.adk.agents import LlmAgent
 
 from ..config import MODEL
 
-impact_agent = LlmAgent(
-    name="impact_agent",
-    model=MODEL,
-    description="Fuses risk signals against the watch list into per-part ¥ exposure.",
-    instruction=(
+
+def make_impact_agent() -> LlmAgent:
+    """Build a fresh impact_agent instance."""
+    return LlmAgent(
+        name="impact_agent",
+        model=MODEL,
+        description="Fuses risk signals against the watch list into per-part ¥ exposure.",
+        instruction=(
         "You quantify how the sensed risks hit THIS company's parts and products.\n\n"
         "Watch list:\n{watch_list}\n\n"
         "Risk signals:\n"

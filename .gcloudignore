@@ -1,0 +1,18 @@
+# Controls what `gcloud run deploy --source .` uploads to Cloud Build.
+# NOTE: we deliberately do NOT ignore frontend/.env — the SPA build bakes in the
+# (public) VITE_FIREBASE_* keys + VITE_API_BASE. Without this file gcloud would
+# fall back to .gitignore and drop frontend/.env, breaking the build.
+
+.git/
+.venv/
+__pycache__/
+*.pyc
+frontend/node_modules/
+frontend/dist/
+node_modules/
+docs/
+scratchpad/
+.claude/
+.agents/
+# root-only backend .env (Cloud Run gets these as service env vars instead)
+/.env

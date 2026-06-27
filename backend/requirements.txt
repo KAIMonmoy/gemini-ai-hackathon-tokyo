@@ -1,0 +1,13 @@
+# Backend = agent deps (see ../requirements.txt, installed in the same image) plus:
+google-adk
+google-genai
+requests
+python-dotenv
+
+# Web server
+fastapi
+uvicorn[standard]
+python-multipart
+
+# Auth + Firestore (firebase-admin bundles google-cloud-firestore)
+firebase-admin
