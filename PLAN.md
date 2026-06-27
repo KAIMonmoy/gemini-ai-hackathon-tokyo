@@ -19,8 +19,8 @@ SPA (Firebase Hosting); custom FastAPI backend wrapping the ADK Runner, verifyin
 and reading/writing Firestore. Gemini runs on the **Vertex path** (ADC already in `.env`).
 
 Environment is ready: `.venv` (Python 3.14), `google-adk 2.3.0`, `google-genai 2.10.0`, gcloud SDK,
-project `tokyo-gemini-ai-hackathon`. **Still pending:** `gcloud auth application-default login` (ADC)
-and confirming a live Gemini model id (`gemini-3.5-flash` → fallback `gemini-2.5-flash`).
+project `tokyo-gemini-ai-hackathon`. The only model used throughout is **`gemini-3.5-flash`**
+(no fallback). **Still pending:** `gcloud auth application-default login` (ADC).
 
 ## Target repository layout (monorepo)
 
@@ -59,7 +59,7 @@ ai-hackathon/
 This is essentially `SPEC.md` milestones **M0–M6**, all offline (`USE_STUBS=true`, no network).
 
 1. **Scaffold (M0):** create the `sourcing_sentinel/` package tree, `config.py`
-   (`MODEL=os.getenv("MODEL","gemini-2.5-flash")`, `USE_STUBS` flag), `schemas.py` (TypedDicts per
+   (`MODEL=os.getenv("MODEL","gemini-3.5-flash")`, `USE_STUBS` flag), `schemas.py` (TypedDicts per
    SPEC §7), and `data/sample_bom.json` + `data/demo_trigger.json` (SPEC §13 verbatim).
 2. **Stub tools (M1):** `tools/{documents,fx,weather,commodity,suppliers}.py`. Each is a typed,
    docstring'd function returning a `dict` matching SPEC §7 shapes; when `USE_STUBS` it returns
@@ -132,8 +132,7 @@ returns a canned brief (the same shape the agent produces), so UI work isn't blo
    `get_weather_logistics` (Open-Meteo); commodity/suppliers stay on `google_search` + curated
    fallback. All network calls in try/except with safe fallback signals (never crash the pipeline).
 3. **GCP prep:** run `gcloud auth application-default login`, set quota project, enable
-   `run / aiplatform / cloudbuild / artifactregistry`. Confirm a live Gemini model id and pin
-   `MODEL` in `.env`.
+   `run / aiplatform / cloudbuild / artifactregistry`. Model is `gemini-3.5-flash` on Vertex.
 4. **Deploy:** containerize the FastAPI backend (`backend/Dockerfile`) → Cloud Run (Vertex path,
    service account granted Vertex AI User + Firestore access). Deploy the SPA to Firebase Hosting.
 
@@ -159,8 +158,8 @@ demo scenario reproduces from seed data.
 
 ## Key technical notes / risks
 
-- **Model id is a `VERIFY`:** default `config.py` to `gemini-2.5-flash` (known-good) and override via
-  `MODEL` env once `gemini-3.5-flash` is confirmed live on Vertex.
+- **Model:** the only model used anywhere is `gemini-3.5-flash`; `config.py` defaults to it
+  (`MODEL=os.getenv("MODEL","gemini-3.5-flash")`). No fallback model.
 - **ADK Runner in a request/response API:** use a session service (in-memory is fine for the demo),
   create a session per request, inject `watch_list` into state, run to completion, read the final
   event. This is the main integration seam between Phase 1's agents and Phase 3's backend.
