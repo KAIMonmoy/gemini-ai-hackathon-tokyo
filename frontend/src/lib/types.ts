@@ -14,6 +14,11 @@ export interface WatchListItem {
   material: string
 }
 
+export interface WatchList {
+  items: WatchListItem[]
+  currency_home: string
+}
+
 export interface BusinessProfile {
   company_name: string
   contact_name: string

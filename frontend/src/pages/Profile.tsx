@@ -1,15 +1,11 @@
 import { useEffect, useState } from 'react'
 
 import { useAuth } from '../auth/AuthContext'
+import { uploadBom } from '../api/client'
 import { loadProfile, saveProfile } from '../lib/store'
+import { SAMPLE_ITEMS } from '../lib/sample'
 import { EMPTY_WATCH_ITEM, type BusinessProfile, type WatchListItem } from '../lib/types'
 import { Button, Card, Input } from '../components/ui'
-
-const SAMPLE_ITEMS: WatchListItem[] = [
-  { part: 'M3 titanium bolt', supplier: 'Tanaka Seiko', supplier_region: 'Kagoshima', country: 'Japan', currency: 'JPY', qty_per_month: 12000, unit_cost: 18, lead_time_days: 14, skus: ['A-100', 'A-110', 'B-200', 'B-210'], material: 'titanium' },
-  { part: 'ABS housing', supplier: 'Maruyama Plastics', supplier_region: 'Osaka', country: 'Japan', currency: 'JPY', qty_per_month: 3000, unit_cost: 120, lead_time_days: 21, skus: ['A-100'], material: 'ABS resin' },
-  { part: 'control IC', supplier: 'Shenzhen MicroTech', supplier_region: 'Shenzhen', country: 'China', currency: 'USD', qty_per_month: 2000, unit_cost: 3.4, lead_time_days: 35, skus: ['A-100', 'B-200'], material: 'semiconductor' },
-]
 
 const EMPTY_PROFILE: BusinessProfile = {
   company_name: '',
@@ -20,12 +16,13 @@ const EMPTY_PROFILE: BusinessProfile = {
 }
 
 export default function Profile() {
-  const { user } = useAuth()
+  const { user, getIdToken } = useAuth()
   const [profile, setProfile] = useState<BusinessProfile>(EMPTY_PROFILE)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
+  const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
     if (!user) return
@@ -74,6 +71,25 @@ export default function Profile() {
     }
   }
 
+  async function handleUpload(fileList: FileList | null) {
+    if (!fileList || fileList.length === 0) return
+    setUploading(true)
+    setError('')
+    setSaved(false)
+    try {
+      const watch = await uploadBom(Array.from(fileList), getIdToken)
+      setProfile((p) => ({
+        ...p,
+        currency_home: watch.currency_home || p.currency_home,
+        items: watch.items ?? [],
+      }))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to parse BOM')
+    } finally {
+      setUploading(false)
+    }
+  }
+
   if (loading) return <p className="text-slate-500">Loading profile…</p>
 
   return (
@@ -115,11 +131,22 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* BOM upload — wired to the real multimodal parser in Phase 4. */}
-        <label className="mb-4 flex cursor-not-allowed items-center justify-between rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-500">
-          <span>📄 Upload a BOM / invoice (PDF, Excel, photo) — auto-extract coming in Phase 4</span>
-          <input type="file" disabled className="hidden" />
-          <span className="rounded-md border border-slate-300 px-2 py-1 text-xs">Choose file</span>
+        {/* BOM upload — multimodal extraction via Gemini (or sample data under USE_STUBS). */}
+        <label className="mb-4 flex cursor-pointer items-center justify-between rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-600 hover:border-indigo-400 hover:bg-indigo-50/40">
+          <span>
+            📄 {uploading ? 'Extracting…' : 'Upload a BOM / invoice (PDF, Excel, photo) to auto-fill the watch list'}
+          </span>
+          <input
+            type="file"
+            multiple
+            accept=".pdf,.png,.jpg,.jpeg,.xlsx,.xls,.csv"
+            disabled={uploading}
+            className="hidden"
+            onChange={(e) => handleUpload(e.target.files)}
+          />
+          <span className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs">
+            {uploading ? 'Working…' : 'Choose file'}
+          </span>
         </label>
 
         {profile.items.length === 0 ? (
