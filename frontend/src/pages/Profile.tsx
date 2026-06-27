@@ -25,6 +25,7 @@ export default function Profile() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     if (!user) return
@@ -33,6 +34,7 @@ export default function Profile() {
         if (p) setProfile({ ...EMPTY_PROFILE, ...p })
         else setProfile({ ...EMPTY_PROFILE, contact_email: user.email ?? '', company_name: user.displayName ?? '' })
       })
+      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load profile'))
       .finally(() => setLoading(false))
   }, [user])
 
@@ -60,9 +62,13 @@ export default function Profile() {
   async function handleSave() {
     if (!user) return
     setSaving(true)
+    setError('')
+    setSaved(false)
     try {
       await saveProfile(user.uid, profile)
       setSaved(true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save profile')
     } finally {
       setSaving(false)
     }
@@ -84,6 +90,10 @@ export default function Profile() {
           </Button>
         </div>
       </div>
+
+      {error && (
+        <Card className="border-red-200 bg-red-50 text-sm text-red-700">{error}</Card>
+      )}
 
       <Card className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Input label="Company name" value={profile.company_name} onChange={(e) => setField('company_name', e.target.value)} />
