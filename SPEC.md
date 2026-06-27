@@ -73,7 +73,7 @@ root_agent  (SequentialAgent)
 | Model | `gemini-3.5-flash` | `VERIFY` exact id in AI Studio; fall back to `gemini-2.5-flash` if unavailable |
 | Multimodal parsing | `google-genai` SDK | send file bytes + JSON-schema prompt to Gemini |
 | HTTP | `requests` | free APIs |
-| Config | `python-dotenv` | `.env` |
+| Config | `python-dotenv` | `.venv` |
 | Deploy | Cloud Run via `adk deploy cloud_run --with_ui` | gives public URL + browser UI |
 | Auth | `gcloud auth application-default login` | ADC |
 
@@ -87,7 +87,7 @@ Create exactly this (ADK's deploy command requires `root_agent` discoverable in 
 sourcing-sentinel/
 ├── README.md
 ├── requirements.txt
-├── .env.example
+├── .venv
 ├── .gitignore
 ├── data/
 │   ├── sample_bom.json          # seed watch_list for offline tests (see §13)
