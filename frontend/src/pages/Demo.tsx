@@ -4,20 +4,11 @@ import { Link } from 'react-router-dom'
 import PublicHeader from '../components/PublicHeader'
 import AgentProgress from '../components/AgentProgress'
 import BriefView from '../components/BriefView'
-import { SAMPLE_ITEMS } from '../lib/sample'
-import { mockBrief } from '../api/mockBrief'
-import type { Brief, BusinessProfile } from '../lib/types'
+import { DEMO_BRIEF, DEMO_PROFILE, DEMO_SIGNALS } from '../lib/demoData'
+import type { Brief } from '../lib/types'
 import { Button, Card } from '../components/ui'
 
-const DEMO_PROFILE: BusinessProfile = {
-  company_name: 'Tanaka Seiko (sample)',
-  contact_name: 'Owner',
-  contact_email: 'owner@example.co.jp',
-  currency_home: 'JPY',
-  items: SAMPLE_ITEMS,
-}
-
-// Let the agent animation play fully before revealing the (mock) brief.
+// Let the agent animation play fully before revealing the (scripted) brief.
 const DEMO_RUN_MS = 8200
 
 export default function Demo() {
@@ -28,7 +19,7 @@ export default function Demo() {
     setBrief(null)
     setRunning(true)
     setTimeout(() => {
-      setBrief(mockBrief(DEMO_PROFILE))
+      setBrief(DEMO_BRIEF)
       setRunning(false)
     }, DEMO_RUN_MS)
   }
@@ -55,18 +46,17 @@ export default function Demo() {
             {running ? (
               <AgentProgress running={running} />
             ) : brief ? (
-              <BriefView brief={brief} />
+              <>
+                <SignalsCard />
+                <BriefView brief={brief} />
+              </>
             ) : (
               <Card>
-                <h2 className="mb-2 text-lg font-semibold text-slate-900">What happens next</h2>
+                <h2 className="mb-2 text-lg font-semibold text-slate-900">No analysis yet</h2>
                 <p className="text-sm text-slate-600">
                   Press <strong>Run analysis</strong> to watch the agent team sense risks, quantify the
                   ¥ exposure, plan a feasible response, and draft supplier emails — using the sample
                   bill of materials on the right.
-                </p>
-                <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
-                  Demo mode uses canned signals (typhoon near Kagoshima · titanium +8% · USD/JPY +3%)
-                  so the result is the same every time.
                 </p>
               </Card>
             )}
@@ -86,11 +76,20 @@ export default function Demo() {
                 ))}
               </ul>
             </Card>
+
+            {!brief && !running && (
+              <Card className="bg-amber-50">
+                <h2 className="mb-1 text-sm font-semibold text-slate-900">Scripted scenario</h2>
+                <p className="text-xs text-amber-700">
+                  Typhoon near Kagoshima · titanium +8% · USD/JPY +3% — so the result is the same every
+                  time.
+                </p>
+              </Card>
+            )}
+
             <Card className="bg-indigo-50">
               <h2 className="text-sm font-semibold text-slate-900">Like what you see?</h2>
-              <p className="mt-1 mb-3 text-sm text-slate-600">
-                Run it on your own bill of materials.
-              </p>
+              <p className="mt-1 mb-3 text-sm text-slate-600">Run it on your own bill of materials.</p>
               <Link to="/signup">
                 <Button className="w-full">Create your account</Button>
               </Link>
@@ -99,5 +98,31 @@ export default function Demo() {
         </div>
       </main>
     </div>
+  )
+}
+
+function SignalsCard() {
+  return (
+    <Card>
+      <h2 className="mb-3 text-lg font-semibold text-slate-900">Signals detected</h2>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        {DEMO_SIGNALS.map((s, i) => (
+          <div key={i} className="rounded-lg border border-slate-200 p-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xl">{s.icon}</span>
+              <span
+                className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                  s.severity >= 4 ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
+                }`}
+              >
+                sev {s.severity}
+              </span>
+            </div>
+            <div className="mt-2 text-sm font-semibold text-slate-900">{s.label}</div>
+            <div className="text-xs text-slate-500">{s.detail}</div>
+          </div>
+        ))}
+      </div>
+    </Card>
   )
 }
