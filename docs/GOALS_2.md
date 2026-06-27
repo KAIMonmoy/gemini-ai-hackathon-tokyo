@@ -13,8 +13,11 @@
       `WatchListItem` shape) and persists it to Firestore.
 - [ ] A **dashboard** page renders a risk brief — impacted parts, ¥ exposure, risk score, ranked
       alternatives, and draft JP/EN emails — fed by a mock API client.
-- [ ] Firestore data model (`users/{uid}` + `watchlist` + `runs`) with security rules scoping each
-      user to their own `users/{uid}/**`.
+- [ ] Firestore data model with security rules scoping each user to their own `users/{uid}/**`:
+      a `users/{uid}` profile doc holding company info + the watch-list `items` array, and a
+      `users/{uid}/runs` subcollection of analysis results. (The watch list lives as an array in
+      the profile doc rather than a separate `watchlist` subcollection — simpler and atomic for a
+      small list.)
 
 ## Definition of done
 

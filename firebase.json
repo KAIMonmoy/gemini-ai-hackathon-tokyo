@@ -1,0 +1,7 @@
+{
+  "firestore": {
+    "database": "sourcingsentinel",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
+}

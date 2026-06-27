@@ -15,8 +15,10 @@ dashboard, Firestore persistence**, and a GCP deployment — built in a specific
 4. **Wire it all together** end-to-end.
 
 **Locked decisions:** stub function tools gated by `USE_STUBS` (not real MCP servers); React+Vite
-SPA (Firebase Hosting); custom FastAPI backend wrapping the ADK Runner, verifying Firebase tokens,
+SPA (served via Cloud Run); custom FastAPI backend wrapping the ADK Runner, verifying Firebase tokens,
 and reading/writing Firestore. Gemini runs on the **Vertex path** (ADC already in `.env`).
+**Region: everything is deployed in `asia-northeast1` (Tokyo)** — Cloud Run, Vertex, and the named
+Firestore database `sourcingsentinel` all live there.
 
 Environment is ready: `.venv` (Python 3.14), `google-adk 2.3.0`, `google-genai 2.10.0`, gcloud SDK,
 project `tokyo-gemini-ai-hackathon`. The only model used throughout is **`gemini-3.5-flash`**
@@ -109,8 +111,13 @@ returns a canned brief (the same shape the agent produces), so UI work isn't blo
    risk score, ranked mitigation options/alternates, and the draft JP/EN emails. Initially fed by
    the mock client.
 6. **Firestore data model & rules:**
-   `users/{uid}` (profile), `users/{uid}/watchlist` (items), `users/{uid}/runs/{runId}` (analysis
-   results). Security rules: a user can read/write only their own `users/{uid}/**`.
+   `users/{uid}` — a single profile doc holding company info **and** the watch-list `items`
+   array (plus `currency_home`); `users/{uid}/runs/{runId}` — one analysis result per run.
+   Security rules: a user can read/write only their own `users/{uid}/**`.
+   > Implementation note: the watch list is an `items` array inside the profile doc, not a
+   > separate `watchlist` subcollection — it's a handful of items, well under Firestore's
+   > 1 MB/doc limit, and updates atomically with the profile. Split into a subcollection only
+   > if a watch list ever grows large.
 
 **Verify Phase 2:** `npm run dev` → sign up → create a business profile (saved in Firestore console)
 → dashboard renders the mocked risk brief end-to-end in the browser.
@@ -133,8 +140,12 @@ returns a canned brief (the same shape the agent produces), so UI work isn't blo
    fallback. All network calls in try/except with safe fallback signals (never crash the pipeline).
 3. **GCP prep:** run `gcloud auth application-default login`, set quota project, enable
    `run / aiplatform / cloudbuild / artifactregistry`. Model is `gemini-3.5-flash` on Vertex.
-4. **Deploy:** containerize the FastAPI backend (`backend/Dockerfile`) → Cloud Run (Vertex path,
-   service account granted Vertex AI User + Firestore access). Deploy the SPA to Firebase Hosting.
+4. **Deploy (everything on Cloud Run — core requirement):** build the SPA (`npm run build`) and
+   have the FastAPI backend serve the static `dist/` (SPA fallback route to `index.html`) so the
+   whole app ships as **one Cloud Run service / one public URL**. Containerize via
+   `backend/Dockerfile` (multi-stage: node build of the SPA → python runtime serving API + static)
+   → `gcloud run deploy --region=asia-northeast1` (Vertex path, service account granted Vertex AI
+   User + Firestore access). No Firebase Hosting.
 
 **Verify Phase 3:** hit the deployed `POST /analyze` with a test Firebase token → returns a brief
 computed from live FX/weather; the run document appears in Firestore.
@@ -143,7 +154,10 @@ computed from live FX/weather; the run document appears in Firestore.
 
 ## Phase 4 — Wire everything together (end-to-end)
 
-1. Point `frontend/.env` `VITE_API_BASE` at the deployed Cloud Run URL; remove the mock client.
+1. Since the SPA and API share one Cloud Run origin, switch the client off mock mode using a
+   **same-origin / relative** API base (e.g. build with `VITE_API_BASE=/api`, or add a
+   `VITE_USE_MOCK` flag) — the current `client.ts` treats an empty `VITE_API_BASE` as mock, so
+   point it at the relative API path rather than leaving it blank.
 2. Real flow: signup → profile + **BOM upload** → `POST /upload-bom` runs real multimodal
    `parse_documents` (Gemini) → watch_list saved to Firestore → "Run analysis" → real pipeline →
    dashboard shows the real brief + emails; results persisted under `users/{uid}/runs`.

@@ -16,13 +16,16 @@
       commodity/suppliers on `google_search` + curated fallback. Every network call has a safe
       fallback and never crashes the pipeline.
 - [ ] Gemini runs on the **Vertex path** with `gemini-3.5-flash`; ADC + required GCP APIs enabled.
-- [ ] Backend deployed to **Cloud Run**; SPA deployed to **Firebase Hosting**.
+- [ ] Whole app deployed to **Cloud Run** in **`asia-northeast1` (Tokyo)** (core requirement): the
+      FastAPI service serves both the API and the built SPA as static files — **one Cloud Run service,
+      one public URL**. No Firebase Hosting. All resources (Cloud Run, Vertex, Firestore) stay in
+      asia-northeast1.
 
 ## Definition of done
 
 - A request to the deployed `POST /analyze` with a valid Firebase token returns a brief computed
   from **live** FX/weather, and the run document appears in Firestore.
-- The Cloud Run service has a reachable public URL; the SPA is served from Firebase Hosting.
+- The single Cloud Run service has a reachable public URL that serves both the SPA and the API.
 
 ## Out of scope (this phase)
 
