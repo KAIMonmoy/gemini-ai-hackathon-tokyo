@@ -62,3 +62,6 @@ Thumbs.db
 
 .claude
 .agents
+
+# Personal live-demo cheat sheet
+demo_data.txt
